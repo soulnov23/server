@@ -145,9 +145,7 @@ int client::tcp_socket_start()
 		if (errno != EINPROGRESS)
 		{
 			PRINTF_ERROR("connect(%d, %s, %d) error", m_tcp_fd, SERVER_IP, TCP_LISTEN_PORT);
-			close(m_tcp_fd);
-			m_tcp_fd = -1;
-			return -1;
+			goto error;
 		}
 		else
 		{
@@ -155,9 +153,7 @@ int client::tcp_socket_start()
 			if (count == -1)
 			{
 				PRINTF_ERROR("select(%d) error", m_tcp_fd);
-				close(m_tcp_fd);
-				m_tcp_fd = -1;
-				return -1;
+				goto error;
 			}
 			else
 			{
@@ -168,9 +164,7 @@ int client::tcp_socket_start()
 					if (getsockopt(m_tcp_fd, SOL_SOCKET, SO_ERROR, &err, &len) == -1)
 					{
 						PRINTF_ERROR("getsockopt(%d, SOL_SOCKET, SO_ERROR) error", m_tcp_fd);
-						close(m_tcp_fd);
-						m_tcp_fd = -1;
-						return -1;
+						goto error;
 					}
 					if (err == 0)
 					{
@@ -179,17 +173,13 @@ int client::tcp_socket_start()
 					else
 					{
 						PRINTF_ERROR("connect ip:%s port:%d failure", SERVER_IP, TCP_LISTEN_PORT);
-						close(m_tcp_fd);
-						m_tcp_fd = -1;
-						return -1;
+						goto error;
 					}
 				}
 				else
 				{
 					PRINTF_ERROR("connect ip:%s port:%d failure", SERVER_IP, TCP_LISTEN_PORT);
-					close(m_tcp_fd);
-					m_tcp_fd = -1;
-					return -1;
+					goto error;
 				}
 			}
 		}
@@ -203,6 +193,11 @@ int client::tcp_socket_start()
 		return -1;
 	}
 	return 0;
+
+error:
+	close(m_tcp_fd);
+	m_tcp_fd = -1;
+	return -1;
 }
 
 int client::udp_socket_start()

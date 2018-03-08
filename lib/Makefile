@@ -1,13 +1,13 @@
 CC = g++
 TARGET_CXXFLAGS = -g -Wall
 TARGET_INCLUDE = -I/usr/local/include
-MODULE := src
+MODULE := lib
 
 SRC := $(wildcard *.cpp)
 OBJS := $(patsubst %.cpp, %.o, $(SRC))
 
 all : $(MODULE)
-	@echo "compile src!"
+	@echo "compile lib!"
 
 $(MODULE) : $(OBJS)
 	@cp $(OBJS) $(OBJ_DIR)
