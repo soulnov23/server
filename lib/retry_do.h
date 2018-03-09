@@ -37,7 +37,7 @@
 
 #define r_do  r_do3
 
-///ºöÂÔ´íÎóÔËĞĞ
+///å¿½ç•¥é”™è¯¯è¿è¡Œ
 #define ignore_error_do(func) \
 do{ \
     int err=errno; \
