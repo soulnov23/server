@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/param.h>
-#include "lib_daemon.h"
+#include "daemon.h"
 
 int init_daemon(char *path)
 {

@@ -1,5 +1,5 @@
-#ifndef RETRY_DO_H
-#define RETRY_DO_H
+#ifndef __RETRY_DO_H__
+#define __RETRY_DO_H__
 
 #include <errno.h>
 #include <sys/types.h>
