@@ -1,5 +1,5 @@
-#ifndef _MSG_STRUCT_H_
-#define _MSG_STRUCT_H_
+#ifndef __MSG_STRUCT_H_
+#define __MSG_STRUCT_H_
 
 #define PACK_4 __attribute((aligned(4)))
 #define PACK_1 __attribute__ ((packed))
@@ -12,12 +12,12 @@ struct ipc_hdr_t
     uint32_t version;
     uint16_t msg_type;  
     uint32_t data_len;
-	uint16_t hdr_len;//ºóÐø¸ß°æ±¾Ìí¼Ó×Ö¶Î¶¼ÔÚhdr_lenÖ®ºóÌí¼Ó
+	uint16_t hdr_len;//åŽç»­é«˜ç‰ˆæœ¬æ·»åŠ å­—æ®µéƒ½åœ¨hdr_lenä¹‹åŽæ·»åŠ 
     char data[0];
 } PACK_4;
 
 #define OFFSET(struct_type, member) ((size_t)&((struct_type *)0)->member)
-//ptrÎª½á¹¹Ìåstruct_type³ÉÔ±memberµÄÖ¸Õë£¬Í¨¹ýÖ¸ÕëºÍmemberÃû×Ö·µ»Østruct_type½á¹¹ÌåÖ¸Õë
+//pträ¸ºç»“æž„ä½“struct_typeæˆå‘˜memberçš„æŒ‡é’ˆï¼Œé€šè¿‡æŒ‡é’ˆå’Œmemberåå­—è¿”å›žstruct_typeç»“æž„ä½“æŒ‡é’ˆ
 #define container_of(ptr, struct_type, member)	\
 ({	\
 	const typeof(((struct_type *)0)->member)*__mptr = (ptr);	\

@@ -1,5 +1,5 @@
-#ifndef _SERVER_H_
-#define _SERVER_H_
+#ifndef __SERVER_H__
+#define __SERVER_H__
 
 #include <string>
 using namespace std;
@@ -22,10 +22,11 @@ private:
 	static void signal_handler_t(int signum);
 
 private:
-	void do_accept();
+	void do_tcp_accept();
 	void do_tcp_recv(int fd);
 	void do_tcp_send(int fd, string data);
 	void do_udp_recvfrom();
+	void do_udp_sendto(int fd, string data, struct sockaddr_in addr);
 	int tcp_socket_start();
 	int udp_socket_start();
 	int unix_socket_start();

@@ -1,5 +1,5 @@
-#ifndef _COMMON_FUNC_H_
-#define _COMMON_FUNC_H_
+#ifndef __COMMON_FUNC_H__
+#define __COMMON_FUNC_H__
 
 #include <stdio.h>
 #include <errno.h>

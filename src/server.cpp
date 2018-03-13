@@ -94,21 +94,37 @@ void server::stop()
 	}
 	if (m_tcp_listen_fd != -1)
 	{
+		if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, m_tcp_listen_fd, NULL))
+		{
+			PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, m_tcp_listen_fd);
+		}
 		close(m_tcp_listen_fd);
 		m_tcp_listen_fd = -1;
 	}
 	if (m_udp_fd != -1)
 	{
+		if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, m_udp_fd, NULL))
+		{
+			PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, m_udp_fd);
+		}
 		close(m_udp_fd);
 		m_udp_fd = -1;
 	}
 	if (m_unix_fd != -1)
 	{
+		if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, m_unix_fd, NULL))
+		{
+			PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, m_unix_fd);
+		}
 		close(m_unix_fd);
 		m_unix_fd = -1;
 	}
 	if (m_raw_fd != -1)
 	{
+		if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, m_raw_fd, NULL))
+		{
+			PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, m_raw_fd);
+		}
 		close(m_raw_fd);
 		m_raw_fd = -1;
 	}
@@ -218,7 +234,7 @@ void server::event_loop()
 			{
 				if (events[i].data.fd == m_tcp_listen_fd)
 				{
-					do_accept();
+					do_tcp_accept();
 				}
 				else if (events[i].data.fd == m_udp_fd)
 				{
@@ -237,7 +253,7 @@ void server::event_loop()
 	}
 }
 
-void server::do_accept()
+void server::do_tcp_accept()
 {
 	while (true)
 	{
@@ -322,9 +338,10 @@ void server::do_tcp_send(int fd, string data)
 	int total_send = 0;
 	while (total_send < length)
 	{
-		int sent = send(fd, data.c_str()+total_send, length-total_send, 0);
+		int ret = send(fd, data.c_str()+total_send, length-total_send, 0);
 		if (ret > 0)
 		{
+			total_send += ret;
 			continue;
 		}
 		else if (ret == -1)
@@ -419,9 +436,10 @@ void server::do_udp_sendto(int fd, string data, struct sockaddr_in addr)
 	socklen_t addr_len = sizeof(addr);
 	while (total_send < length)
 	{
-		int sent = sendto(fd, data.c_str()+total_send, length-total_send, 0, (struct sockaddr *)&addr, &addr_len);
+		int ret = sendto(fd, data.c_str()+total_send, length-total_send, 0, (struct sockaddr *)&addr, addr_len);
 		if (ret > 0)
 		{
+			total_send += ret;
 			continue;
 		}
 		else if (ret == -1)

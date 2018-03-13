@@ -1,5 +1,5 @@
-#ifndef _CLIENT_H_
-#define _CLIENT_H_
+#ifndef __CLIENT_H__
+#define __CLIENT_H__
 
 class client
 {

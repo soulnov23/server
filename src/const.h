@@ -1,5 +1,5 @@
-#ifndef _CONST_H_
-#define _CONST_H_
+#ifndef __CONST_H__
+#define __CONST_H__
 
 #define SIZE_1K (1024)
 #define SIZE_1M (SIZE_1K)*(SIZE_1K)

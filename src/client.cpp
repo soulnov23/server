@@ -207,7 +207,7 @@ int client::udp_socket_start()
 	server_addr.sin_port = htons(UDP_LISTEN_PORT);
 	server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
 	m_udp_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	//TCP套接字调用connect会引发三次握手，而UDP套接字则不会引发三次握手，只是检查是否存在错误，然后立即返回
+	//TCP濂楁帴瀛楄皟鐢╟onnect浼氬紩鍙戜笁娆℃彙鎵嬶紝鑰孶DP濂楁帴瀛楀垯涓嶄細寮曞彂涓夋鎻℃墜锛屽彧鏄鏌ユ槸鍚﹀瓨鍦ㄩ敊璇紝鐒跺悗绔嬪嵆杩斿洖
 	int ret = connect(m_udp_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
 	if (-1 == ret)
 	{
@@ -256,11 +256,11 @@ void client::event_loop()
 			{
 				if (events[i].data.fd == m_tcp_fd)
 				{
-					do_tcp_read();
+					do_tcp_recv();
 				}
 				else if (events[i].data.fd == m_udp_fd)
 				{
-					do_udp_read();
+					do_udp_recvfrom();
 				}
 			}
 			else if(events[i].events&EPOLLOUT)

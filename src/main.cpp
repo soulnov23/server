@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 	{
 		server::get_instance()->start();
 	}
-	else if (strcmp(pos, "server_cli") == 0)
+	else if (strcmp(pos, "client") == 0)
 	{
 		client::get_instance()->start();
 	}

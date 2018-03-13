@@ -52,5 +52,3 @@ int single_process(const char* proc_name)
 	
 	return PROCESS_SINGLE_SUCESS;
 }
-
-#endif
