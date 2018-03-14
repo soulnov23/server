@@ -2,10 +2,11 @@ CC = g++
 PROJ_PATH = $(shell pwd)
 TARGET_NAME = server
 MODULES = lib src
-OBJ_DIR = $(PROJ_PATH)/objs
+OBJ_DIR = $(PROJ_PATH)/obj
 
 all : $(MODULES)
 	$(MAKE) -C $(OBJ_DIR) TARGET_NAME="$(TARGET_NAME)" all
+	@cp -f $(TARGET_NAME) client
 	@echo "make done!"
 
 lib :
@@ -17,9 +18,8 @@ src :
 .PHONY : clean $(MODULES)
 
 clean :
-	$(MAKE) -C $(PROJ_PATH)/objs TARGET_NAME="$(TARGET_NAME)" clean
+	$(MAKE) -C $(PROJ_PATH)/obj TARGET_NAME="$(TARGET_NAME)" clean
 	$(MAKE) -C $(PROJ_PATH)/lib clean
 	$(MAKE) -C $(PROJ_PATH)/src clean
-	rm -rf $(TARGET_NAME) server_cli core.*
+	rm -rf $(TARGET_NAME) client core.*
 	@echo "clean done!"
-

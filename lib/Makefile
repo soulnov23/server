@@ -4,13 +4,13 @@ TARGET_INCLUDE = -I/usr/local/include
 MODULE := lib
 
 SRC := $(wildcard *.cpp)
-OBJS := $(patsubst %.cpp, %.o, $(SRC))
+OBJ := $(patsubst %.cpp, %.o, $(SRC))
 
 all : $(MODULE)
 	@echo "compile lib!"
 
-$(MODULE) : $(OBJS)
-	@cp $(OBJS) $(OBJ_DIR)
+$(MODULE) : $(OBJ)
+	@cp $(OBJ) $(OBJ_DIR)
 
 %.o : %.cpp
 	$(CC) $(TARGET_CXXFLAGS) -c $^ $(TARGET_INCLUDE)
@@ -18,4 +18,4 @@ $(MODULE) : $(OBJS)
 .PHONY : clean
 
 clean :
-	rm -rf $(OBJS) *.bak
+	rm -rf $(OBJ) *.bak
