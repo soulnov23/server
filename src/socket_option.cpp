@@ -1,8 +1,9 @@
-#include "common_func.h"
+#include "socket_option.h"
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/tcp.h>
+#include "printf.h"
 
 int make_socket_nonblocking(int fd)
 {

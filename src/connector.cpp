@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <sys/epoll.h>
 #include <unistd.h>
-#include "common_func.h"
+#include "printf.h"
 
 connector::connector(int epoll_fd, int fd, char *ip, void *arg)
 {

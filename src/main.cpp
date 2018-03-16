@@ -1,6 +1,5 @@
 #include "server.h"
 #include "client.h"
-#include "common_func.h"
 #include <string.h>
 
 int main(int argc, char *argv[])

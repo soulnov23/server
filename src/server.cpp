@@ -6,7 +6,8 @@
 #include <unistd.h>
 #include <signal.h>
 #include "const.h"
-#include "common_func.h"
+#include "printf.h"
+#include "socket_option.h"
 
 server *server::g_server = new server;
 

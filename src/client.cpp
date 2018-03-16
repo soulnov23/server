@@ -9,7 +9,8 @@
 #include <string>
 using namespace std;
 #include "const.h"
-#include "common_func.h"
+#include "printf.h"
+#include "socket_option.h"
 
 client *client::g_client = new client;
 
