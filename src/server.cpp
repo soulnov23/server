@@ -136,6 +136,7 @@ int server::tcp_socket_start()
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(TCP_LISTEN_PORT);
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	//server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	m_tcp_listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (-1 == make_socket_nonblocking(m_tcp_listen_fd))
 	{
