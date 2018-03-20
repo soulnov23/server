@@ -6,13 +6,13 @@
 class connector
 {
 public:
-	connector(int epoll_fd, int fd, char *ip, void *arg);
+	connector(int fd, char *ip, void *arg);
 	~connector();
 
+private:
 	void free();
 	
-private:
-	int m_epoll_fd;
+public:
 	int m_fd;
 	buffer *m_buffer;
 	char m_ip[20];

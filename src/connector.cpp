@@ -1,13 +1,10 @@
 #include "connector.h"
 #include <string.h>
 #include <assert.h>
-#include <sys/epoll.h>
 #include <unistd.h>
-#include "printf.h"
 
-connector::connector(int epoll_fd, int fd, char *ip, void *arg)
+connector::connector(int fd, char *ip, void *arg)
 {
-	m_epoll_fd = epoll_fd;
 	m_fd = fd;
 	m_buffer = new buffer;
 	assert(m_buffer != NULL);
@@ -22,10 +19,6 @@ connector::~connector()
 
 void connector::free()
 {
-	if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, m_fd, NULL))
-	{
-		PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, m_fd);
-	}
 	close(m_fd);
 	m_fd = -1;
 	if (NULL != m_buffer)

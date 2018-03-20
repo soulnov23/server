@@ -282,19 +282,27 @@ void server::do_tcp_accept()
 		{
 			PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_ADD, %d) error", m_epoll_fd, fd);
 		}
+		connector *conn = new connector(fd, inet_ntoa(addr.sin_addr), NULL);
+		m_fd_conn.insert(make_pair(fd, conn));
 	}
 }
 
 void server::do_tcp_recv(int fd)
 {
-	string buffer;
+	map<int, connector*>::iterator it = m_fd_conn.find(fd);
+	if (it == m_fd_conn.end())
+	{
+		PRINTF_ERROR("m_fd_conn(map)没有发现连接对象的fd:%d", fd);
+		return;
+	}
+	connector *conn = it->second;
 	while (true)
 	{
 		char buf[1024] = {0};
 		ssize_t ret = recv(fd, buf, 1024, 0);
 		if (ret > 0)
 		{
-			buffer.append(buf);
+			conn->m_buffer->append(buf, ret);
 			continue;
 		}
 		else if (ret == -1)
@@ -309,38 +317,43 @@ void server::do_tcp_recv(int fd)
 			}
 			else
 			{
-				PRINTF_ERROR("fd:%d abnormal disconnection", fd);
+				PRINTF_ERROR("fd:%d ip:%s abnormal disconnection", fd, conn->m_ip);
 				if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, NULL))
 				{
 					PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, fd);
 				}
-				close(fd);
-				fd = -1;
+				delete(conn);
+				m_fd_conn.erase(it);
 				break;
 			}
 		}
 		if (ret == 0)
 		{
-			PRINTF_ERROR("fd:%d normal disconnection", fd);
+			PRINTF_ERROR("fd:%d ip:%s normal disconnection", fd, conn->m_ip);
 			if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, NULL))
 			{
 				PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, fd);
 			}
-			close(fd);
-			fd = -1;
+			delete(conn);
+			m_fd_conn.erase(it);
 			break;
 		}
 	}
-	PRINTF_DEBUG("fd:%d recv:%s", fd, buffer.c_str());
 }
 
-void server::do_tcp_send(int fd, string data)
+void server::do_tcp_send(int fd, const char *data, int len)
 {
-	int length = data.length();
-	int total_send = 0;
-	while (total_send < length)
+	map<int, connector*>::iterator it = m_fd_conn.find(fd);
+	if (it == m_fd_conn.end())
 	{
-		int ret = send(fd, data.c_str()+total_send, length-total_send, 0);
+		PRINTF_ERROR("m_fd_conn(map)没有发现连接对象的fd:%d", fd);
+		return;
+	}
+	connector *conn = it->second;
+	int total_send = 0;
+	while (total_send < len)
+	{
+		int ret = send(fd, data+total_send, len-total_send, 0);
 		if (ret > 0)
 		{
 			total_send += ret;
@@ -358,25 +371,25 @@ void server::do_tcp_send(int fd, string data)
 			}
 			else
 			{
-				PRINTF_ERROR("fd:%d abnormal disconnection", fd);
+				PRINTF_ERROR("fd:%d ip:%s abnormal disconnection", fd, conn->m_ip);
 				if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, NULL))
 				{
 					PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, fd);
 				}
-				close(fd);
-				fd = -1;
+				delete(conn);
+				m_fd_conn.erase(it);
 				break;
 			}
 		}
 		if (ret == 0)
 		{
-			PRINTF_ERROR("fd:%d normal disconnection", fd);
+			PRINTF_ERROR("fd:%d ip:%s normal disconnection", fd, conn->m_ip);
 			if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, NULL))
 			{
 				PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, fd);
 			}
-			close(fd);
-			fd = -1;
+			delete(conn);
+			m_fd_conn.erase(it);
 			break;
 		}
 	}
@@ -431,14 +444,13 @@ void server::do_udp_recvfrom()
 	}
 }
 
-void server::do_udp_sendto(int fd, string data, struct sockaddr_in addr)
+void server::do_udp_sendto(int fd, const char *data, int len, struct sockaddr_in addr)
 {
-	int length = data.length();
 	int total_send = 0;
 	socklen_t addr_len = sizeof(addr);
-	while (total_send < length)
+	while (total_send < len)
 	{
-		int ret = sendto(fd, data.c_str()+total_send, length-total_send, 0, (struct sockaddr *)&addr, addr_len);
+		int ret = sendto(fd, data+total_send, len-total_send, 0, (struct sockaddr *)&addr, addr_len);
 		if (ret > 0)
 		{
 			total_send += ret;

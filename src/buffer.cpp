@@ -25,11 +25,6 @@ buffer::~buffer()
 	}
 }
 
-const char *buffer::begin()
-{
-	return m_buffer;
-}
-
 void buffer::append(const char *data, int len)
 {
 	if ((m_size + len) >= m_max_size)
@@ -47,6 +42,7 @@ void buffer::remove(int len)
 	assert(len <= m_size);
 	if (len == m_size)
 	{
+		memset(m_buffer, 0, m_size);
 		m_size = 0;
 		return;
 	}

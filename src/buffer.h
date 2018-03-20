@@ -4,10 +4,10 @@
 class buffer
 {
 public:
+	//初始化大小为64K，每次超过都扩大2倍
 	buffer();
 	~buffer();
 
-	const char *begin();
 	void append(const char *data, int len);
 	void remove(int len);
 	int size();

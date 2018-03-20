@@ -26,4 +26,18 @@ struct ipc_hdr_t
 
 #define IPC_HEADER_SZ (OFFSET(struct ipc_hdr_t, data))
 
+/*
+const char *buf = "hello world";
+int len = strlen(buf);
+struct ipc_hdr_t *ipc_hdr = (struct ipc_hdr_t*)malloc(IPC_HEADER_SZ+len);
+memset(ipc_hdr, 0, IPC_HEADER_SZ+len);
+ipc_hdr->magic = MAGIC;
+ipc_hdr->version = VERSION;
+ipc_hdr->msg_type = 1;
+ipc_hdr->data_len = len;
+memcpy(ipc_hdr->data, buf, len);
+send(fd, (char*)ipc_hdr, IPC_HEADER_SZ+len);
+free(ipc_hdr);
+*/
+
 #endif
