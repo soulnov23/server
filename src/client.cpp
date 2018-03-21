@@ -125,65 +125,13 @@ int client::tcp_socket_start()
 	server_addr.sin_port = htons(TCP_LISTEN_PORT);
 	server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
 	m_tcp_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (-1 == make_socket_nonblocking(m_tcp_fd))
+	int ret = connect_timeout(m_tcp_fd, (struct sockaddr*)&server_addr, sizeof(server_addr), 3, 0);
+	if (ret == -1)
 	{
-		PRINTF_ERROR("make_socket_nonblocking(%d) error", m_tcp_fd);
+		PRINTF_ERROR("connect error");
+		close(m_tcp_fd);
+		m_tcp_fd = -1;
 		return -1;
-	}
-	struct timeval timeout;
-	timeout.tv_sec = 3;
-	timeout.tv_usec = 0;
-	fd_set write_set;
-	FD_ZERO(&write_set);
-	FD_SET(m_tcp_fd, &write_set);
-	int ret = connect(m_tcp_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
-	if (ret == 0)
-	{
-		PRINTF_DEBUG("connect ip:%s port:%d success", SERVER_IP, TCP_LISTEN_PORT);
-	}
-	else if (ret == -1)
-	{
-		if (errno != EINPROGRESS)
-		{
-			PRINTF_ERROR("connect(%d, %s, %d) error", m_tcp_fd, SERVER_IP, TCP_LISTEN_PORT);
-			goto error;
-		}
-		else
-		{
-			int count = select(m_tcp_fd+1, NULL, &write_set, NULL, &timeout);
-			if (count == -1)
-			{
-				PRINTF_ERROR("select(%d) error", m_tcp_fd);
-				goto error;
-			}
-			else
-			{
-				if (FD_ISSET(m_tcp_fd, &write_set))
-				{
-					int err = 0;
-					socklen_t len = sizeof(err);
-					if (getsockopt(m_tcp_fd, SOL_SOCKET, SO_ERROR, &err, &len) == -1)
-					{
-						PRINTF_ERROR("getsockopt(%d, SOL_SOCKET, SO_ERROR) error", m_tcp_fd);
-						goto error;
-					}
-					if (err == 0)
-					{
-						PRINTF_DEBUG("connect ip:%s port:%d success", SERVER_IP, TCP_LISTEN_PORT);
-					}
-					else
-					{
-						PRINTF_ERROR("connect ip:%s port:%d failure", SERVER_IP, TCP_LISTEN_PORT);
-						goto error;
-					}
-				}
-				else
-				{
-					PRINTF_ERROR("connect ip:%s port:%d failure", SERVER_IP, TCP_LISTEN_PORT);
-					goto error;
-				}
-			}
-		}
 	}
 	struct epoll_event event;
 	event.data.fd = m_tcp_fd;
@@ -194,11 +142,67 @@ int client::tcp_socket_start()
 		return -1;
 	}
 	return 0;
+}
 
-error:
-	close(m_tcp_fd);
-	m_tcp_fd = -1;
-	return -1;
+int client::connect_timeout(int fd, sockaddr *addr, socklen_t len, int nsec, int usec)
+{
+	if (-1 == make_socket_nonblocking(fd))
+	{
+		PRINTF_ERROR("make_socket_nonblocking(%d) error", fd);
+		return -1;
+	}
+	struct timeval timeout;
+	timeout.tv_sec = nsec;
+	timeout.tv_usec = usec;
+	fd_set write_set;
+	FD_ZERO(&write_set);
+	FD_SET(fd, &write_set);
+	int ret = connect(fd, addr, len);
+	if (ret == 0)
+	{
+		PRINTF_DEBUG("connect直接成功");
+		return 0;
+	}
+	else if (ret == -1)
+	{
+		if (errno != EINPROGRESS)
+		{
+			PRINTF_ERROR("connect error");
+			return -1;
+		}
+		int count = select(fd+1, NULL, &write_set, NULL, &timeout);
+		if (count == 0)
+		{
+			PRINTF_ERROR("select timeout");
+			return -1;
+		}
+		if (count == -1)
+		{
+			PRINTF_ERROR("select error");
+			return -1;
+		}
+		if (FD_ISSET(fd, &write_set))
+		{
+			int err = 0;
+			socklen_t len = sizeof(err);
+			if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len) == -1)
+			{
+				PRINTF_ERROR("getsockopt error");
+				return -1;
+			}
+			if (err != 0)
+			{
+				PRINTF_ERROR("connect error");
+				return -1;
+			}
+			return 0;
+		}
+		else
+		{
+			PRINTF_ERROR("FD_ISSET error");
+			return -1;
+		}
+	}
 }
 
 int client::udp_socket_start()

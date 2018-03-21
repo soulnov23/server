@@ -1,6 +1,9 @@
 #ifndef __CLIENT_H__
 #define __CLIENT_H__
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
 class client
 {
 public:
@@ -23,6 +26,7 @@ private:
 	void do_tcp_send();
 	void do_udp_recvfrom();
 	int tcp_socket_start();
+	int connect_timeout(int fd, sockaddr *addr, socklen_t len, int nsec, int usec);
 	int udp_socket_start();
 	int unix_socket_start();
 	int raw_socket_start();

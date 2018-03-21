@@ -1,6 +1,8 @@
 #ifndef __SOCKET_OPTION_H__
 #define __SOCKET_OPTION_H__
 
+int make_socket_blocking(int fd);
+
 int make_socket_nonblocking(int fd);
 
 int make_socket_reuseaddr(int fd);

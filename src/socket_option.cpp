@@ -5,6 +5,22 @@
 #include <netinet/tcp.h>
 #include "printf.h"
 
+int make_socket_blocking(int fd)
+{
+	int flags;
+	if ((flags = fcntl(fd, F_GETFL, NULL)) == -1) 
+	{
+		PRINTF_ERROR("fcntl(%d, F_GETFL) error", fd);
+		return -1;
+	}
+	if (fcntl(fd, F_SETFL, flags&~O_NONBLOCK) == -1) 
+	{
+		PRINTF_ERROR("fcntl(%d, F_SETFL) error", fd);
+		return -1;
+	}
+	return 0;
+}
+
 int make_socket_nonblocking(int fd)
 {
 	int flags;
