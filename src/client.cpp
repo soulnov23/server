@@ -144,7 +144,7 @@ int client::tcp_socket_start()
 	return 0;
 }
 
-int client::connect_timeout(int fd, sockaddr *addr, socklen_t len, int nsec, int usec)
+int client::connect_timeout(int fd, const struct sockaddr *addr, socklen_t addrlen, int nsec, int usec)
 {
 	if (-1 == make_socket_nonblocking(fd))
 	{
@@ -157,7 +157,7 @@ int client::connect_timeout(int fd, sockaddr *addr, socklen_t len, int nsec, int
 	fd_set write_set;
 	FD_ZERO(&write_set);
 	FD_SET(fd, &write_set);
-	int ret = connect(fd, addr, len);
+	int ret = connect(fd, addr, addrlen);
 	if (ret == 0)
 	{
 		PRINTF_DEBUG("connect直接成功");
