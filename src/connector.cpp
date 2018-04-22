@@ -27,6 +27,10 @@ void connector::free()
 		m_buffer = NULL;
 	}
 	memset(m_ip, 0, 20);
-	m_arg = NULL;
+	if (NULL != m_arg)
+	{
+		delete m_arg;
+		m_arg = NULL;
+	}
 }
 

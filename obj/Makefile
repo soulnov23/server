@@ -5,6 +5,7 @@ OBJ := $(wildcard *.o)
 all : $(OBJ)
 	$(CC) $^ -o $(TARGET_NAME) $(TARGET_LDFLAGS)
 	@cp -f $(TARGET_NAME) ../
+	@cp -f $(TARGET_NAME) ../client
 
 .PHONY : clean
 

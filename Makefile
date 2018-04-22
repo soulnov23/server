@@ -6,7 +6,6 @@ OBJ_DIR = $(PROJ_PATH)/obj
 
 all : $(MODULES)
 	$(MAKE) -C $(OBJ_DIR) TARGET_NAME="$(TARGET_NAME)" all
-	@cp -f $(TARGET_NAME) client
 	@echo "make done!"
 
 lib :

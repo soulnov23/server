@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "connector.h"
 
 class client
 {
@@ -23,8 +24,9 @@ private:
 
 private:
 	void do_tcp_recv();
-	void do_tcp_send();
+	void do_tcp_send(int fd, const char *data, int len);
 	void do_udp_recvfrom();
+	void do_udp_sendto(int fd, const char *data, int len, struct sockaddr_in addr);
 	int tcp_socket_start();
 	int connect_timeout(int fd, const struct sockaddr *addr, socklen_t addrlen, int nsec, int usec);
 	int udp_socket_start();
@@ -36,6 +38,7 @@ private:
 	bool m_flag;
 	int m_epoll_fd;
 	int m_tcp_fd;
+	connector *m_tcp_conn;
 	int m_udp_fd;
 	int m_unix_fd;
 	int m_raw_fd;

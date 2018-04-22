@@ -18,6 +18,7 @@ client::client()
 {
 	m_epoll_fd = -1;
 	m_tcp_fd = -1;
+	m_tcp_conn = NULL;
 	m_udp_fd = -1;
 	m_unix_fd = -1;
 	m_raw_fd = -1;
@@ -101,6 +102,11 @@ void client::stop()
 		close(m_tcp_fd);
 		m_tcp_fd = -1;
 	}
+	if (m_tcp_conn != NULL)
+	{
+		delete m_tcp_conn;
+		m_tcp_conn = NULL;
+	}
 	if (m_udp_fd != -1)
 	{
 		close(m_udp_fd);
@@ -124,6 +130,7 @@ int client::tcp_socket_start()
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(TCP_LISTEN_PORT);
 	server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
+	PRINTF_DEBUG("server ip:%s", SERVER_IP);
 	m_tcp_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	int ret = connect_timeout(m_tcp_fd, (struct sockaddr*)&server_addr, sizeof(server_addr), 3, 0);
 	if (ret == -1)
@@ -141,6 +148,7 @@ int client::tcp_socket_start()
 		PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_ADD, %d) error", m_epoll_fd, m_tcp_fd);
 		return -1;
 	}
+	m_tcp_conn = new connector(m_tcp_fd, inet_ntoa(server_addr.sin_addr), NULL);
 	return 0;
 }
 
@@ -278,14 +286,13 @@ void client::event_loop()
 
 void client::do_tcp_recv()
 {
-	string buffer;
 	while (true)
 	{
 		char buf[1024] = {0};
 		ssize_t ret = recv(m_tcp_fd, buf, 1024, 0);
 		if (ret > 0)
 		{
-			buffer.append(buf);
+			m_tcp_conn->m_buffer->append(buf, ret);
 			continue;
 		}
 		else if (ret == -1)
@@ -305,8 +312,7 @@ void client::do_tcp_recv()
 				{
 					PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, m_tcp_fd);
 				}
-				close(m_tcp_fd);
-				m_tcp_fd = -1;
+				delete m_tcp_conn;
 				break;
 			}
 		}
@@ -317,12 +323,55 @@ void client::do_tcp_recv()
 			{
 				PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, m_tcp_fd);
 			}
-			close(m_tcp_fd);
-			m_tcp_fd = -1;
+			delete m_tcp_conn;
 			break;
 		}
 	}
-	PRINTF_DEBUG("fd:%d recv:%s", m_tcp_fd, buffer.c_str());
+}
+
+void client::do_tcp_send(int fd, const char *data, int len)
+{
+	int total_send = 0;
+	while (total_send < len)
+	{
+		int ret = send(fd, data+total_send, len-total_send, 0);
+		if (ret > 0)
+		{
+			total_send += ret;
+			continue;
+		}
+		else if (ret == -1)
+		{
+			if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
+			{
+				break;
+			}
+			else if (errno == EINTR)
+			{
+				continue;
+			}
+			else
+			{
+				PRINTF_ERROR("fd:%d ip:%s abnormal disconnection", fd, m_tcp_conn->m_ip);
+				if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, NULL))
+				{
+					PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, fd);
+				}
+				delete(m_tcp_conn);
+				break;
+			}
+		}
+		if (ret == 0)
+		{
+			PRINTF_ERROR("fd:%d ip:%s normal disconnection", fd, m_tcp_conn->m_ip);
+			if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, NULL))
+			{
+				PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, fd);
+			}
+			delete(m_tcp_conn);
+			break;
+		}
+	}
 }
 
 void client::do_udp_recvfrom()
@@ -369,6 +418,54 @@ void client::do_udp_recvfrom()
 			}
 			close(m_udp_fd);
 			m_udp_fd = -1;
+			break;
+		}
+	}
+}
+
+void client::do_udp_sendto(int fd, const char *data, int len, struct sockaddr_in addr)
+{
+	int total_send = 0;
+	socklen_t addr_len = sizeof(addr);
+	while (total_send < len)
+	{
+		int ret = sendto(fd, data+total_send, len-total_send, 0, (struct sockaddr *)&addr, addr_len);
+		if (ret > 0)
+		{
+			total_send += ret;
+			continue;
+		}
+		else if (ret == -1)
+		{
+			if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
+			{
+				break;
+			}
+			else if (errno == EINTR)
+			{
+				continue;
+			}
+			else
+			{
+				PRINTF_ERROR("fd:%d abnormal disconnection", fd);
+				if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, NULL))
+				{
+					PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, fd);
+				}
+				close(fd);
+				fd = -1;
+				break;
+			}
+		}
+		if (ret == 0)
+		{
+			PRINTF_ERROR("fd:%d normal disconnection", fd);
+			if (-1 == epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, fd, NULL))
+			{
+				PRINTF_ERROR("epoll_ctl(%d, EPOLL_CTL_DEL, %d) error", m_epoll_fd, fd);
+			}
+			close(fd);
+			fd = -1;
 			break;
 		}
 	}
