@@ -11,6 +11,7 @@ set -x
 
 main()
 {
+	make clean
 	git pull
 	git add .
 	local note=$1
