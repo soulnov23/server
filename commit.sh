@@ -13,7 +13,7 @@ main()
 {
 	make clean
 	git pull
-	git add .
+	git add *
 	local note=$1
 	git commit -m "${note}" 
 	git push -u origin master
