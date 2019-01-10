@@ -12,7 +12,7 @@ struct ipc_hdr_t
     uint32_t version;
     uint16_t msg_type;  
     uint32_t data_len;
-	uint16_t hdr_len;//后续高版本添加字段都在hdr_len之后添加
+    uint16_t hdr_len;//后续高版本添加字段都在hdr_len之后添加
     char data[0];
 } PACK_4;
 
